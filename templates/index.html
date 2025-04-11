@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debate Bot</title>
+    <style>
+        /* Majestic Literature-Themed Aesthetic with Ancient Book Vibes */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Merriweather:wght@300;700&display=swap');
+
+body {
+    font-family: 'Merriweather', serif;
+    text-align: center;
+    background: url('https://www.transparenttextures.com/patterns/aged-paper.png');
+    color: #3a2e2b;
+    padding: 20px;
+    animation: fadeIn 1.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+h1 {
+    font-size: 3.5rem;
+    font-family: 'Playfair Display', serif;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: #5c3d2e;
+    border-bottom: 3px double #3a2e2b;
+    display: inline-block;
+    padding-bottom: 8px;
+    position: relative;
+}
+
+h1::before, h1::after {
+    content: '✦';
+    font-size: 1.5rem;
+    position: absolute;
+    color: #5c3d2e;
+}
+
+h1::before { left: -30px; }
+
+h1::after { right: -30px; }
+
+#input-box {
+    margin-top: 30px;
+    font-size: 18px;
+}
+
+input {
+    width: 350px;
+    padding: 12px;
+    border-radius: 8px;
+    border: 2px solid #5c3d2e;
+    background: #fffaf0;
+    color: #3a2e2b;
+    font-size: 18px;
+    outline: none;
+    font-family: 'Merriweather', serif;
+    text-align: center;
+    transition: all 0.3s;
+}
+
+input:focus {
+    background: #f0e6d2;
+    border-color: #3a2e2b;
+}
+
+button {
+    margin-top: 10px;
+    padding: 12px 25px;
+    background: linear-gradient(145deg, #5c3d2e, #3a2e2b);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 18px;
+    font-family: 'Playfair Display', serif;
+    transition: all 0.3s;
+    box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+button:hover {
+    background: #3a2e2b;
+    transform: scale(1.05);
+    box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+#container {
+    display: flex;
+    justify-content: center;
+    margin-top: 50px;
+    gap: 50px;
+}
+
+.column {
+    width: 40%;
+    padding: 30px;
+    min-height: 280px;
+    border-radius: 15px;
+    background: #fffaf0;
+    border: 3px solid #5c3d2e;
+    box-shadow: 7px 7px 20px rgba(0, 0, 0, 0.15);
+    font-size: 20px;
+    font-family: 'Merriweather', serif;
+    position: relative;
+    transition: transform 0.3s ease-in-out;
+    background-image: url('https://www.transparenttextures.com/patterns/aged-paper.png');
+}
+
+.column:hover {
+    background: #f0e6d2;
+    transform: scale(1.02);
+}
+
+.column::before {
+    content: '\201C';
+    font-size: 60px;
+    font-family: 'Playfair Display', serif;
+    color: #5c3d2e;
+    position: absolute;
+    top: -15px;
+    left: 10px;
+}
+
+.column::after {
+    content: '\201D';
+    font-size: 60px;
+    font-family: 'Playfair Display', serif;
+    color: #5c3d2e;
+    position: absolute;
+    bottom: -15px;
+    right: 10px;
+}
+
+@media (max-width: 768px) {
+    #container {
+        flex-direction: column;
+        gap: 30px;
+    }
+
+    .column {
+        width: 80%;
+        margin: auto;
+    }
+}
+    </style>
+</head>
+<body>
+    <h1>Debate Bot</h1>
+    
+    <div id="input-box">
+        <input type="text" id="debate-topic" placeholder="Enter debate topic">
+        <button onclick="startDebate()">Start Debate</button>
+    </div>
+
+    <div id="container">
+        <div class="column" id="for-column"><strong>For:</strong></div>
+        <div class="column" id="against-column"><strong>Against:</strong></div>
+    </div>
+
+    <script>
+        function startDebate() {
+            const topic = document.getElementById("debate-topic").value;
+            if (!topic.trim()) {
+                alert("Please enter a debate topic!");
+                return;
+            }
+
+            fetch("/start_debate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ topic })
+            }).then(() => fetchNextResponse());
+        }
+
+        function fetchNextResponse() {
+            fetch("/get_next_response")
+                .then(response => response.json())
+                .then(data => {
+                    if (data.side === "for") {
+                        document.getElementById("for-column").innerHTML = `<strong>For:</strong> ${data.response}`;
+                        document.getElementById("against-column").innerHTML = "<strong>Against:</strong>";
+                    } else {
+                        document.getElementById("against-column").innerHTML = `<strong>Against:</strong> ${data.response}`;
+                        document.getElementById("for-column").innerHTML = "<strong>For:</strong>";
+                    }
+
+                    setTimeout(fetchNextResponse, data.delay * 1000);
+                });
+        }
+    </script>
+</body>
+</html>
