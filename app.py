@@ -12,7 +12,7 @@ load_dotenv()
 api_key = os.getenv("GROQ_API_KEY")
 
 if not api_key:
-    raise ValueError("API daal saale.")
+    raise ValueError("API daal saale.")  # 🤣 keeping your original insult
 
 client = Groq(api_key=api_key)
 
@@ -20,8 +20,9 @@ app = Flask(__name__)
 
 # Global variable to hold the debate state
 debate_state = {
-    "current_side": "for",  # Starts with 'for'
-    "last_response": ""
+    "current_side": "for",       # Starts with 'for'
+    "last_response": "",
+    "topic": ""                  # Store the debate topic separately
 }
 
 @app.route("/")
@@ -32,20 +33,37 @@ def index():
 def start_debate():
     topic = request.json.get("topic")
     debate_state["last_response"] = topic
+    debate_state["topic"] = topic
+    debate_state["current_side"] = "for"  # Reset to 'for' when new debate starts
     return jsonify({"success": True})
 
 @app.route("/get_next_response", methods=["GET"])
 def get_next_response():
     current_side = debate_state["current_side"]
     last_response = debate_state["last_response"]
+    topic = debate_state["topic"]
 
+    # Build the system prompt properly using the topic
     if current_side == "for":
-        system_prompt = "You are in favor of the topic. Debate logically and convincingly, mock them, even if you have to be illogical sometimes. Reply human-like in less than 2 lines."
+        system_prompt = (
+            f"You are debating *in favor* of the following topic:\n\n"
+            f"\"{topic}\"\n\n"
+            "Debate logically and convincingly, mock the opponent if needed, "
+            "stay focused on the topic, reply in less than 2 lines, "
+            "and sound highly human-like with varied tone."
+        )
         model = "llama-3.3-70b-versatile"
     else:
-        system_prompt = "You are against the topic. Provide strong counterarguments. Reply human-like in less than 2 lines with satire. DOnt let deviate from topic."
+        system_prompt = (
+            f"You are debating *against* the following topic:\n\n"
+            f"\"{topic}\"\n\n"
+            "Provide strong counterarguments to the opponent, do not let the debate drift, "
+            "carry a confident tone with some satire, reply in less than 2 lines, "
+            "and vary your tone naturally."
+        )
         model = "llama-3.1-8b-instant"
 
+    # Get response from Groq
     response = client.chat.completions.create(
         messages=[
             {"role": "system", "content": system_prompt},
@@ -63,6 +81,7 @@ def get_next_response():
     debate_state["last_response"] = new_response
     debate_state["current_side"] = "against" if current_side == "for" else "for"
 
+    # Delay depending on side
     delay = 5 if current_side == "for" else random.randint(5, 7)
 
     return jsonify({
