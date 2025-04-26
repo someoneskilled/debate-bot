@@ -23,8 +23,9 @@ def debate_bot():
         # Argument 'For'
         response_for = client.chat.completions.create(
             messages=[
-                {"role": "system", "content": "You are in favor of the topic. Debate logically and convincingly, mock them, even if you have to be illogical sometimes with your examples.reply human like and in less than 2 lines"},
-                {"role": "user", "content": response_for_text}
+                {"role": "system", "content": "You are in favor of the topic."+ topic + " Debate logically and convincingly, stay on-topic, mock them, even if you have to be illogical sometimes with your examples. Reply human like and in less than 2 lines. Greatly Vary your tone."},
+
+                {"role": "user", "content": "Debate topic is:"+topic + "Opponent's response"+ response_for_text + "Respond while remembering the debate topic and DONT diverge from the topic"}
             ],
             model="llama-3.3-70b-versatile",
             temperature=0.7,
@@ -34,13 +35,14 @@ def debate_bot():
         response_for_text = response_for.choices[0].message.content.strip()
         print(f"\n🟢 In Favor: {response_for_text}")
 
-        time.sleep(5)  # Wait for 2 seconds before "Against"
+        time.sleep(5)  # Wait for 5 seconds before "Against"
 
         # Argument 'Against'
         response_against = client.chat.completions.create(
             messages=[
-                {"role": "system", "content": "You are against the topic. Provide strong counterarguments and dont let the topic deviate. reply human like and in less than 2 lines and carry satire."},
-                {"role": "user", "content": response_for_text}
+                {"role": "system", "content": "You are against the topic."+ topic + "Provide strong counterarguments to the responses and stay focused, don't let the topic deviate. Reply human like, with confidence and in less than 2 lines and carry satire. Greatly Vary your tone."},
+
+                {"role": "user", "content":  "Debate topic is:"+topic + response_for_text + "Respond while remembering the debate topic and DONT diverge from the topic."}
             ],
             model="llama-3.3-70b-versatile",
             temperature=0.7,
